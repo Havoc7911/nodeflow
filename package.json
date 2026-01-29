@@ -1,7 +1,7 @@
 {
-  "name": "nodeflow",
+  "name": "alloy-workspace",
   "version": "0.1.0",
-  "description": "A node-based productivity and workspace suite for unified workflow management",
+  "description": "A unified workspace suite for modern productivity. Create, modify, automate, and save anything—then share it anywhere."
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
