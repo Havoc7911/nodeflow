@@ -1,272 +1,199 @@
-// Zustand store for execution state management
-import { create } from 'zustand'
-import { devtools } from 'zustand/middleware'
-import { ExecutionState, NodeExecutionState } from '../types/core'
+// MobX store for execution state management
+import { makeAutoObservable } from 'mobx';
+import { GraphExecutor, ExecutionProgress } from '../engine';
+import { Node, Edge } from 'reactflow';
 
-interface ExecutionStoreState {
-  currentExecution: ExecutionState | null
-  executionHistory: ExecutionState[]
-  isRunning: boolean
-  isPaused: boolean
-  executionLogs: Array<{ timestamp: Date; level: 'info' | 'warn' | 'error'; message: string; nodeId?: string }>
-
-  // Execution control
-  startExecution: (graphId: string) => void
-  pauseExecution: () => void
-  resumeExecution: () => void
-  stopExecution: () => void
-  completeExecution: () => void
-
-  // Node updates
-  updateNodeState: (nodeId: string, state: Partial<NodeExecutionState>) => void
-  recordNodeError: (nodeId: string, error: string) => void
-  recordNodeOutput: (nodeId: string, outputs: Record<string, any>) => void
-
-  // Logging
-  addLog: (level: 'info' | 'warn' | 'error', message: string, nodeId?: string) => void
-  clearLogs: () => void
-
-  // History
-  addToHistory: (execution: ExecutionState) => void
-  clearHistory: () => void
-  getExecutionHistory: (graphId: string) => ExecutionState[]
-
-  // Progress
-  updateProgress: (completed: number, total: number) => void
-
-  // Query
-  getNodeState: (nodeId: string) => NodeExecutionState | undefined
-  getExecutionStatus: () => 'idle' | 'running' | 'paused' | 'completed' | 'failed'
+export interface ExecutionLog {
+  timestamp: Date;
+  level: 'info' | 'warn' | 'error';
+  message: string;
+  nodeId?: string;
 }
 
-const useExecutionStore = create<ExecutionStoreState>(
-  devtools(
-    (set, get) => ({
-      currentExecution: null,
-      executionHistory: [],
-      isRunning: false,
-      isPaused: false,
-      executionLogs: [],
+export interface NodeExecutionState {
+  status: 'pending' | 'running' | 'completed' | 'error';
+  startTime?: Date;
+  endTime?: Date;
+  output?: any;
+  error?: string;
+}
 
-      startExecution: (graphId) =>
-        set(
-          (state) => {
-            const execution: ExecutionState = {
-              id: `exec_${Date.now()}_${Math.random()}`,
-              graphId,
-              status: 'running',
-              nodeStates: new Map(),
-              startTime: new Date(),
-              progress: 0,
-              totalNodes: 0,
-              completedNodes: 0,
-            }
-            return {
-              currentExecution: execution,
-              isRunning: true,
-              isPaused: false,
-              executionLogs: [],
-            }
-          },
-          false,
-          { type: 'startExecution' }
-        ),
+class ExecutionStore {
+  // Execution state
+  private executor: GraphExecutor;
+  isRunning: boolean = false;
+  isPaused: boolean = false;
+  
+  // Progress tracking
+  progress: ExecutionProgress | null = null;
+  nodeStates: Map<string, NodeExecutionState> = new Map();
+  
+  // Logs
+  logs: ExecutionLog[] = [];
+  
+  // Results
+  results: Map<string, any> | null = null;
+  error: string | null = null;
 
-      pauseExecution: () =>
-        set(
-          (state) => {
-            if (!state.currentExecution) return state
-            return {
-              isRunning: false,
-              isPaused: true,
-              currentExecution: {
-                ...state.currentExecution,
-                status: 'paused',
-              },
-            }
-          },
-          false,
-          { type: 'pauseExecution' }
-        ),
+  constructor() {
+    makeAutoObservable(this);
+    this.executor = new GraphExecutor();
+  }
 
-      resumeExecution: () =>
-        set(
-          (state) => {
-            if (!state.currentExecution) return state
-            return {
-              isRunning: true,
-              isPaused: false,
-              currentExecution: {
-                ...state.currentExecution,
-                status: 'running',
-              },
-            }
-          },
-          false,
-          { type: 'resumeExecution' }
-        ),
+  /**
+   * Start graph execution
+   */
+  async executeGraph(nodes: Node[], edges: Edge[]): Promise<void> {
+    if (this.isRunning) {
+      this.addLog('warn', 'Execution already in progress');
+      return;
+    }
 
-      stopExecution: () =>
-        set(
-          (state) => {
-            if (!state.currentExecution) return state
-            return {
-              isRunning: false,
-              isPaused: false,
-              currentExecution: {
-                ...state.currentExecution,
-                status: 'failed',
-                endTime: new Date(),
-              },
-            }
-          },
-          false,
-          { type: 'stopExecution' }
-        ),
+    // Reset state
+    this.isRunning = true;
+    this.isPaused = false;
+    this.progress = null;
+    this.nodeStates.clear();
+    this.logs = [];
+    this.results = null;
+    this.error = null;
 
-      completeExecution: () =>
-        set(
-          (state) => {
-            if (!state.currentExecution) return state
-            const completed = { ...state.currentExecution, status: 'completed' as const, endTime: new Date() }
-            return {
-              isRunning: false,
-              isPaused: false,
-              currentExecution: completed,
-              executionHistory: [completed, ...state.executionHistory.slice(0, 99)],
-            }
-          },
-          false,
-          { type: 'completeExecution' }
-        ),
+    // Initialize node states
+    nodes.forEach(node => {
+      this.nodeStates.set(node.id, { status: 'pending' });
+    });
 
-      updateNodeState: (nodeId, stateUpdate) =>
-        set(
-          (state) => {
-            if (!state.currentExecution) return state
-            const nodeStates = new Map(state.currentExecution.nodeStates)
-            const existing = nodeStates.get(nodeId) || {
-              nodeId,
-              status: 'pending',
-              inputs: {},
-              outputs: {},
-              retryCount: 0,
-            }
-            nodeStates.set(nodeId, { ...existing, ...stateUpdate })
-            return {
-              currentExecution: {
-                ...state.currentExecution,
-                nodeStates,
-              },
-            }
-          },
-          false,
-          { type: 'updateNodeState' }
-        ),
+    this.addLog('info', `Starting execution of ${nodes.length} nodes`);
 
-      recordNodeError: (nodeId, error) =>
-        set(
-          (state) => {
-            get().updateNodeState(nodeId, { status: 'failed', error })
-            get().addLog('error', error, nodeId)
-            return state
-          },
-          false,
-          { type: 'recordNodeError' }
-        ),
+    try {
+      // Execute with callbacks
+      const outputs = await this.executor.execute(nodes, edges, {
+        onProgress: (progress) => {
+          this.progress = progress;
+        },
+        
+        onNodeExecute: (nodeId) => {
+          this.updateNodeState(nodeId, {
+            status: 'running',
+            startTime: new Date()
+          });
+          this.addLog('info', `Executing node: ${nodeId}`, nodeId);
+        },
+        
+        onNodeComplete: (nodeId, output) => {
+          this.updateNodeState(nodeId, {
+            status: 'completed',
+            endTime: new Date(),
+            output
+          });
+          this.addLog('info', `Node completed: ${nodeId}`, nodeId);
+        },
+        
+        onNodeError: (nodeId, error) => {
+          this.updateNodeState(nodeId, {
+            status: 'error',
+            endTime: new Date(),
+            error: error.message
+          });
+          this.addLog('error', `Node error: ${error.message}`, nodeId);
+        },
+        
+        onComplete: (outputs) => {
+          this.results = outputs;
+          this.addLog('info', 'Execution completed successfully');
+        },
+        
+        onError: (error) => {
+          this.error = error.message;
+          this.addLog('error', `Execution failed: ${error.message}`);
+        }
+      });
 
-      recordNodeOutput: (nodeId, outputs) =>
-        set(
-          (state) => {
-            get().updateNodeState(nodeId, { status: 'completed', outputs })
-            get().addLog('info', `Node completed with output`, nodeId)
-            return state
-          },
-          false,
-          { type: 'recordNodeOutput' }
-        ),
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
+      this.error = errMsg;
+      this.addLog('error', `Execution error: ${errMsg}`);
+    } finally {
+      this.isRunning = false;
+    }
+  }
 
-      addLog: (level, message, nodeId) =>
-        set(
-          (state) => ({
-            executionLogs: [
-              ...state.executionLogs,
-              {
-                timestamp: new Date(),
-                level,
-                message,
-                nodeId,
-              },
-            ].slice(-100),
-          }),
-          false,
-          { type: 'addLog' }
-        ),
+  /**
+   * Abort current execution
+   */
+  abortExecution(): void {
+    if (!this.isRunning) return;
+    
+    this.executor.abort();
+    this.addLog('warn', 'Execution aborted by user');
+    this.isRunning = false;
+  }
 
-      clearLogs: () =>
-        set(
-          () => ({
-            executionLogs: [],
-          }),
-          false,
-          { type: 'clearLogs' }
-        ),
+  /**
+   * Update node execution state
+   */
+  private updateNodeState(nodeId: string, state: Partial<NodeExecutionState>): void {
+    const currentState = this.nodeStates.get(nodeId) || { status: 'pending' };
+    this.nodeStates.set(nodeId, { ...currentState, ...state });
+  }
 
-      addToHistory: (execution) =>
-        set(
-          (state) => ({
-            executionHistory: [execution, ...state.executionHistory.slice(0, 99)],
-          }),
-          false,
-          { type: 'addToHistory' }
-        ),
+  /**
+   * Add a log entry
+   */
+  addLog(level: 'info' | 'warn' | 'error', message: string, nodeId?: string): void {
+    this.logs.push({
+      timestamp: new Date(),
+      level,
+      message,
+      nodeId
+    });
+  }
 
-      clearHistory: () =>
-        set(
-          () => ({
-            executionHistory: [],
-          }),
-          false,
-          { type: 'clearHistory' }
-        ),
+  /**
+   * Clear all logs
+   */
+  clearLogs(): void {
+    this.logs = [];
+  }
 
-      getExecutionHistory: (graphId) => {
-        const state = get()
-        return state.executionHistory.filter((e) => e.graphId === graphId)
-      },
+  /**
+   * Get node execution state
+   */
+  getNodeState(nodeId: string): NodeExecutionState | undefined {
+    return this.nodeStates.get(nodeId);
+  }
 
-      updateProgress: (completed, total) =>
-        set(
-          (state) => {
-            if (!state.currentExecution) return state
-            return {
-              currentExecution: {
-                ...state.currentExecution,
-                completedNodes: completed,
-                totalNodes: total,
-                progress: total > 0 ? (completed / total) * 100 : 0,
-              },
-            }
-          },
-          false,
-          { type: 'updateProgress' }
-        ),
+  /**
+   * Get execution status
+   */
+  getExecutionStatus(): 'idle' | 'running' | 'paused' | 'completed' | 'error' {
+    if (this.error) return 'error';
+    if (this.results && !this.isRunning) return 'completed';
+    if (this.isPaused) return 'paused';
+    if (this.isRunning) return 'running';
+    return 'idle';
+  }
 
-      getNodeState: (nodeId) => {
-        const state = get()
-        return state.currentExecution?.nodeStates.get(nodeId)
-      },
+  /**
+   * Get completion percentage
+   */
+  getCompletionPercentage(): number {
+    if (!this.progress || this.progress.totalNodes === 0) return 0;
+    return Math.round((this.progress.completed.length / this.progress.totalNodes) * 100);
+  }
 
-      getExecutionStatus: () => {
-        const state = get()
-        if (!state.currentExecution) return 'idle'
-        if (state.isPaused) return 'paused'
-        if (state.isRunning) return 'running'
-        return state.currentExecution.status as 'completed' | 'failed'
-      },
-    }),
-    { name: 'nodeflow-execution-store' }
-  )
-)
+  /**
+   * Reset execution state
+   */
+  reset(): void {
+    this.isRunning = false;
+    this.isPaused = false;
+    this.progress = null;
+    this.nodeStates.clear();
+    this.logs = [];
+    this.results = null;
+    this.error = null;
+  }
+}
 
-export default useExecutionStore
+export const executionStore = new ExecutionStore();
