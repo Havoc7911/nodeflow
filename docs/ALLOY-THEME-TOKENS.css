@@ -1,0 +1,145 @@
+/* Alloy Workspace - Light Theme Tokens */
+:root {
+  /* Core Colors */
+  --color-bg: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #F1F5F9;
+  --color-border: #E2E8F0;
+
+  --color-text: #0F172A;
+  --color-text-muted: #475569;
+  --color-text-subtle: #64748B;
+
+  --color-primary: #1A73E8;
+  --color-primary-hover: #1669D3;
+  --color-focus-ring: rgba(26,115,232,0.28);
+
+  /* Typography */
+  --font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-12: 12px;
+  --font-14: 14px;
+  --font-16: 16px;
+  --font-weight-reg: 400;
+  --font-weight-med: 500;
+
+  /* Spacing */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+
+  /* Borders & Radius */
+  --radius-8: 8px;
+  --radius-12: 12px;
+
+  /* Shadows */
+  --shadow-1: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-2: 0 6px 18px rgba(15, 23, 42, 0.10);
+
+  /* Motion */
+  --motion-fast: 120ms;
+  --motion-base: 180ms;
+  --motion-ease: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Categories */
+  --cat-collect: #4285F4;
+  --cat-edit: #A142F4;
+  --cat-route: #F9AB00;
+  --cat-save: #12B5CB;
+  --cat-send: #34A853;
+  --cat-automate: #EA4335;
+
+  /* Status */
+  --status-idle: #94A3B8;
+  --status-running: #1A73E8;
+  --status-success: #34A853;
+  --status-warning: #F9AB00;
+  --status-error: #EA4335;
+
+  /* Node */
+  --node-bg: var(--color-surface);
+  --node-border: var(--color-border);
+  --node-border-selected: var(--color-primary);
+  --node-radius: var(--radius-12);
+  --node-min-width: 220px;
+  --node-header-height: 28px;
+  --node-pad-x: var(--space-12);
+  --node-pad-y: 10px;
+  --node-shadow: var(--shadow-1);
+  --node-shadow-active: var(--shadow-2);
+
+  /* Ports */
+  --port-size: 10px;
+  --port-border: rgba(15, 23, 42, 0.20);
+  --port-fill: #FFFFFF;
+  --port-fill-hover: rgba(26, 115, 232, 0.10);
+
+  /* Edges */
+  --edge-stroke: #94A3B8;
+  --edge-stroke-hover: #64748B;
+  --edge-stroke-selected: var(--color-primary);
+  --edge-width: 2;
+  --edge-width-selected: 2.5;
+
+  /* Canvas */
+  --canvas-bg: var(--color-bg);
+  --canvas-grid: rgba(15, 23, 42, 0.06);
+  --canvas-selection-fill: rgba(26, 115, 232, 0.10);
+  --canvas-selection-border: rgba(26, 115, 232, 0.55);
+}
+
+/* Dark Theme Overrides */
+:root[data-theme="dark"] {
+  /* Core Colors */
+  --color-bg: #0B1220;
+  --color-surface: #0F172A;
+  --color-surface-alt: #111C34;
+  --color-border: rgba(226, 232, 240, 0.12);
+
+  --color-text: #E2E8F0;
+  --color-text-muted: #94A3B8;
+  --color-text-subtle: #64748B;
+
+  --color-primary: #8AB4F8;
+  --color-primary-hover: #A8C7FA;
+  --color-focus-ring: rgba(138, 180, 248, 0.32);
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 10px 28px rgba(0, 0, 0, 0.55);
+
+  /* Categories (Dark) */
+  --cat-collect: #8AB4F8;
+  --cat-edit: #D7AEFB;
+  --cat-route: #FDD663;
+  --cat-save: #78D9EC;
+  --cat-send: #81C995;
+  --cat-automate: #F28B82;
+
+  /* Status (Dark) */
+  --status-idle: #64748B;
+  --status-running: #8AB4F8;
+  --status-success: #81C995;
+  --status-warning: #FDD663;
+  --status-error: #F28B82;
+
+  /* Node (Dark) */
+  --node-bg: var(--color-surface);
+  --node-border: rgba(226, 232, 240, 0.14);
+  --node-border-selected: var(--color-primary);
+
+  /* Ports (Dark) */
+  --port-border: rgba(226, 232, 240, 0.22);
+  --port-fill: #0B1220;
+  --port-fill-hover: rgba(138, 180, 248, 0.16);
+
+  /* Edges (Dark) */
+  --edge-stroke: rgba(148, 163, 184, 0.55);
+  --edge-stroke-hover: rgba(226, 232, 240, 0.55);
+  --edge-stroke-selected: var(--color-primary);
+
+  /* Canvas (Dark) */
+  --canvas-grid: rgba(226, 232, 240, 0.05);
+  --canvas-selection-fill: rgba(138, 180, 248, 0.16);
+  --canvas-selection-border: rgba(138, 180, 248, 0.55);
+}
