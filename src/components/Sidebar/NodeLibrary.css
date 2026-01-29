@@ -1,0 +1,69 @@
+.node-library {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.node-category {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.category-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0 4px;
+}
+
+.node-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.node-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #252525;
+  border: 1px solid #333;
+  border-radius: 6px;
+  cursor: grab;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.node-item:hover {
+  background: #2d2d2d;
+  border-color: #3b82f6;
+  transform: translateX(2px);
+}
+
+.node-item:active {
+  cursor: grabbing;
+  transform: scale(0.98);
+}
+
+.node-icon {
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.node-label {
+  font-size: 14px;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+/* Dragging state */
+.node-item.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
