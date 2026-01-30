@@ -2,6 +2,7 @@ import { Node, Edge } from 'reactflow';
 import { GraphValidator } from './GraphValidator';
 import { TopologicalSort } from './TopologicalSort';
 import { ExecutionContext, ExecutionProgress } from './ExecutionContext';
+import { nodeHandlerRegistry } from '../nodes/handlers';
 
 export interface ExecutionOptions {
   onProgress?: (progress: ExecutionProgress) => void;
@@ -116,34 +117,44 @@ export class GraphExecutor {
     node: Node,
     inputs: Map<string, any>
   ): Promise<any> {
-    // This is where node-specific execution logic will be implemented
-    // For now, return a simple result based on node type
-    const nodeType = node.type || 'default';
+    // Try to get a registered handler for this node type
+    const handler = nodeHandlerRegistry.getHandlerForNode(node);
     
-    // Placeholder execution - will be replaced with actual node handlers
-    switch (nodeType) {
-      case 'input':
-        return node.data?.value || null;
-      
-      case 'transform':
-        // Apply transformation to input
-        const input = Array.from(inputs.values())[0];
-        return input; // Placeholder
-      
-      case 'output':
-        // Pass through input
-        return Array.from(inputs.values())[0];
-      
-      default:
-        // Generic node execution
-        return {
+    if (handler) {
+      // Use the registered handler
+      try {
+        const executionContext = {
           nodeId: node.id,
-          type: nodeType,
-          inputs: Object.fromEntries(inputs),
-          timestamp: Date.now()
+          variables: new Map()
         };
+        
+        const result = await handler.execute(
+          node,
+          Object.fromEntries(inputs),
+          executionContext
+        );
+        
+        return result.data;
+      } catch (error) {
+        throw new Error(
+          `Handler execution failed for node type "${node.type}": ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`
+        );
+      }
     }
-  }
+    
+    // Fallback for nodes without registered handlers
+    console.warn(`No handler registered for node type "${node.type}". Using fallback.`);
+    
+    return {
+      nodeId: node.id,
+      type: node.type || 'unknown',
+      inputs: Object.fromEntries(inputs),
+      data: node.data,
+      timestamp: Date.now(),
+      warning: 'No handler registered for this node type'
+    };  }
 
   /**
    * Abort current execution
