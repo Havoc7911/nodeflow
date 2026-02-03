@@ -56,7 +56,7 @@ export class ExecutionEngine {
         if (!node) continue;
 
         try {
-          await this.executeNode(node, nodes, edges);
+          await this.executeNode(node, edges);
         } catch (error: any) {
           errors.push({
             nodeId,
@@ -86,8 +86,7 @@ export class ExecutionEngine {
   // Execute a single node
   private async executeNode(
     node: Node,
-    allNodes: Node[],
-    edges: Edge[]
+        edges: Edge[]
   ): Promise<NodeResult> {
     const startTime = Date.now();
     
@@ -99,12 +98,18 @@ export class ExecutionEngine {
       const inputData = this.getInputData(node.id, edges);
       
       // Get handler for this node type
-      const handler = this.handlers.get(node.data.type);
+      const handler = this.handlers.get((node.data as any).type);
       
       // Execute node logic
       let output: any;
       if (handler) {
-        output = await handler.execute(node.data, inputData);
+              // Create execution context
+      const context = {
+        nodeId: node.id,
+        graphId: 'default',
+        variables: new Map<string, any>()
+      };
+        output = await handler.execute(node, inputData, context);
       } else {
         // Default execution for nodes without handlers
         output = { ...node.data, input: inputData };
