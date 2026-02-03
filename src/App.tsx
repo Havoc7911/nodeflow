@@ -99,8 +99,8 @@ function App() {
   };
 
   const deleteNode = (id: string) => {
-    setNodes((nds) => nds.filter((n) => n.id !== id));
-    setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
+    setNodes((nds) => nds.filter((n: any) => n.id !== id));
+        setEdges((eds) => eds.filter((e: any) => e.source !== id && e.target !== id));    setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
     setSelectedNode(null);
   };
 
