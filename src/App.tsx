@@ -1,6 +1,6 @@
 import './App.css';
 import React, { useState, useEffect } from 'react';
-import { ReactFlow, Background, Controls, MiniMap, ReactFlowProvider, useNodesState, useEdgesState, addEdge, Edge, Node } from '@xyflow/react';
+import { ReactFlow, Background, Controls, MiniMap, useNodesState, useEdgesState, addEdge, Edge, Node } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 // Node Type Definitions
@@ -22,7 +22,7 @@ const NODE_TYPES: NodeType[] = [
 
 // Custom Node Component
 const CustomNode: React.FC<{
-  data: { label: string; type: string; color: string };
+  data: { label: string; type: string; color: string; icon?: string };
   isConnectable: boolean;
 }> = ({ data, isConnectable }) => {
   const [selected, setSelected] = useState(false);
@@ -80,6 +80,7 @@ function App() {
         label: nodeLabel,
         type: typeInfo.label,
         color: typeInfo.color,
+                    icon: typeInfo.icon,
       },
     };
 
@@ -224,8 +225,7 @@ function App() {
 
         {/* Canvas */}
         <div style={{ flex: 1, position: 'relative' }}>
-          <ReactFlowProvider>
-            <ReactFlow
+                      <ReactFlow
               nodes={nodes}
               edges={edges}
               onNodesChange={onNodesChange}
@@ -239,8 +239,7 @@ function App() {
               <Controls />
               <MiniMap />
             </ReactFlow>
-          </ReactFlowProvider>
-        </div>
+                  </div>
       </div>
     </div>
   );

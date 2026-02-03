@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { ReactFlowProvider } from 'reactflow';
+import { ReactFlowProvider } from ''@xyflow/react'';
 import App from './App';
 import './App.css';
-import 'reactflow/dist/style.css';
+import '@xyflow/react/dist/style.css';
 
 // Initialize the application
 const root = ReactDOM.createRoot(
@@ -12,9 +12,7 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <React.StrictMode>
-    <ReactFlowProvider>
       <App />
-    </ReactFlowProvider>
   </React.StrictMode>
 );
 
