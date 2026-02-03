@@ -1,1 +1,1 @@
-export { default as ExecutionPanel } from './ExecutionPanel';
+export { ExecutionPanel } from './ExecutionPanel';

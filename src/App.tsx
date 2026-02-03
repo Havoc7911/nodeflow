@@ -64,8 +64,7 @@ function App() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [connectionStart, setConnectionStart] = useState<string | null>(null);
 
-  const onConnect = (params: Edge) => setEdges((eds) => addEdge(params, eds));
-
+  const onConnect = (params: any) => setEdges((eds) => addEdge(params as Edge, eds));
   const addNode = (type: string) => {
     if (!nodeLabel.trim()) return;
 
@@ -225,7 +224,8 @@ function App() {
 
         {/* Canvas */}
         <div style={{ flex: 1, position: 'relative' }}>
-                      <ReactFlow
+          
+            <ReactFlow
               nodes={nodes}
               edges={edges}
               onNodesChange={onNodesChange}
@@ -239,9 +239,10 @@ function App() {
               <Controls />
               <MiniMap />
             </ReactFlow>
-                  </div>
+                  
       </div>
     </div>
+            </div>
   );
 }
 
