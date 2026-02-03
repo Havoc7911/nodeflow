@@ -14,11 +14,15 @@
   },
   "dependencies": {
     "@xyflow/react": "^12.10.0",
+    "axios": "^1.13.4",
+    "cron-parser": "^5.5.0",
     "crypto-js": "^4.1.1",
+    "date-fns": "^4.1.0",
     "mobx": "^6.10.2",
     "mobx-react-lite": "^4.0.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-dropzone": "^14.4.0",
     "zod": "^3.22.4",
     "zustand": "^4.4.0"
   },
