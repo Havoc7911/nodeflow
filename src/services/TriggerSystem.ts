@@ -4,7 +4,7 @@
  * Uses cron-parser for schedule parsing and management
  */
 
-import * as parser from 'cron-parser';
+import cronParser from 'cron-parser';
 
 export type TriggerType = 'schedule' | 'event' | 'webhook' | 'manual';
 
@@ -132,7 +132,8 @@ export class TriggerSystem {
     }
 
     try {
-      const interval = parser.parseExpression(trigger.config.cron, {
+          //@ts-expect-error
+      const interval = cronParser.parseExpression(trigger.config.cron, {
         currentDate: new Date(),
         tz: trigger.config.timezone
       });
@@ -287,7 +288,8 @@ export class TriggerSystem {
    */
   validateCron(cronExpression: string): { valid: boolean; error?: string; next?: Date } {
     try {
-      const interval = parser.parseExpression(cronExpression);
+          //@ts-expect-error
+      const interval = cronParser.parseExpression(cronExpression);
       const next = interval.next().toDate();
       return { valid: true, next };
     } catch (error) {

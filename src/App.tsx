@@ -57,14 +57,14 @@ const CustomNode: React.FC<{
 
 // Main App Component
 function App() {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node[]>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedType, setSelectedType] = useState<string>('collect');
   const [nodeLabel, setNodeLabel] = useState('');
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [connectionStart, setConnectionStart] = useState<string | null>(null);
 
-  const onConnect = (params: any) => setEdges((eds) => addEdge(params as Edge, eds));
+  const onConnect = (params: any) => setEdges((eds: Edge[]) => addEdge(params as Edge, eds));
   const addNode = (type: string) => {
     if (!nodeLabel.trim()) return;
 
@@ -100,7 +100,7 @@ function App() {
 
   const deleteNode = (id: string) => {
     setNodes((nds) => nds.filter((n: any) => n.id !== id));
-        setEdges((eds) => eds.filter((e: any) => e.source !== id && e.target !== id));    setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
+        setEdges((eds: Edge[]) => eds.filter((e: any) => e.source !== id && e.target !== id));    setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
     setSelectedNode(null);
   };
 
